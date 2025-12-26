@@ -8,7 +8,11 @@
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "keywords": ["call", "recording", "sync"],
+  "keywords": [
+    "call",
+    "recording",
+    "sync"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
@@ -17,8 +21,8 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "multer": "^2.0.2",
-    "pg": "^8.16.3"
+    "mongoose": "^9.0.2",
+    "multer": "^2.0.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
