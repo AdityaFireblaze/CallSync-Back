@@ -1,1 +1,12 @@
 node_modules/
+# Ignore uploaded call recordings
+uploads/
+*.mp3
+*.wav
+*.m4a
+
+# Ignore local env files
+.env
+
+# Ignore node modules
+node_modules/
