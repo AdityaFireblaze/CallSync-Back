@@ -6,6 +6,7 @@ const recordingSchema = new mongoose.Schema({
   file_name: String,
   file_path: String,
   file_size: Number,
+  file_url: String,
   phone_number: String,
   call_duration: Number,
   call_timestamp: Date,

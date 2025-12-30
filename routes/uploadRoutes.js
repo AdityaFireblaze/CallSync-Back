@@ -1,18 +1,15 @@
-const express = require("express");
-const multer = require("multer");
-const path = require("path");
-const { uploadRecording } = require("../controllers/uploadController");
+const express = require('express');
+const multer = require('multer');
+const { uploadRecording } = require('../controllers/uploadController');
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: "uploads/recordings",
-  filename: (req, file, cb) =>
-    cb(null, `${Date.now()}${path.extname(file.originalname)}`),
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB limit (adjust)
 });
 
-const upload = multer({ storage });
-
-router.post("/upload", upload.single("audio"), uploadRecording);
+router.post('/upload', upload.single('audio'), uploadRecording);
 
 module.exports = router;
