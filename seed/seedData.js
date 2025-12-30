@@ -31,6 +31,12 @@ async function seed() {
       code: "NEH789",
       activated: true,
     },
+    {
+      name: "Aditya Adlak",
+      department: "HR",
+      code: "A1B2C3",
+      activated: true,
+    },
   ]);
 
   console.log("📞 Creating recordings...");
