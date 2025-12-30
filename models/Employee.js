@@ -11,12 +11,22 @@ const employeeSchema = new mongoose.Schema({
     required: true
   },
 
+  phoneNumber: {
+    type: String,
+    required: true,
+    unique: true        // one phone → one employee
+  },
+
   code: {
     type: String,
     required: true,
-    unique: true,      // ✅ DB-level guarantee
-    immutable: true    // ✅ Cannot be changed once set
+    unique: true,
+    immutable: true     // permanent pairing code
   },
+
+  // optional temporary code fields (not required for permanent admin codes)
+  tempCode: String,
+  tempCodeExpires: Date,
 
   activated: {
     type: Boolean,

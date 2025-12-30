@@ -1,18 +1,10 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
+const adminAuth = require('../middleware/adminAuth');
+const { createEmployee, activateEmployee } = require('../controllers/adminController');
 
-const {
-  createEmployee,
-  listEmployees,
-  dashboardStats,
-  activateEmployee, // ✅ ADD THIS
-} = require("../controllers/adminController");
-
-router.post("/create-employee", createEmployee);
-router.get("/employees", listEmployees);
-router.get("/stats", dashboardStats);
-
-// ✅ NEW ROUTE
-router.put("/activate-employee/:id", activateEmployee);
+// Admin routes protected by adminAuth (expects ADMIN_KEY in header or env)
+router.post('/create-employee', adminAuth, createEmployee);
+router.patch('/activate/:id', adminAuth, activateEmployee);
 
 module.exports = router;

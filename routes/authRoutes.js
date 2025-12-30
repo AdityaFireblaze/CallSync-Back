@@ -1,8 +1,19 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
-const { validateCode } = require("../controllers/authController");
+const { login, sendCode, validateCode, me } = require('../controllers/authController');
+const auth = require('../middleware/auth');
 
-router.post("/validate-code", validateCode);
+// POST /api/auth/login
+router.post('/auth/login', login);
+
+// Protected: send code (admin or employee)
+router.post('/auth/send-code', auth, sendCode);
+
+// Public: validate code (POST /api/validate-code)
+router.post('/validate-code', validateCode);
+
+// Protected: get current authenticated employee
+router.get('/auth/me', auth, me);
 
 module.exports = router;

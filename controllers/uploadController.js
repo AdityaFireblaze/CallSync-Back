@@ -9,7 +9,6 @@ function uploadToGridFS(buffer, filename, metadata = {}) {
     const bucket = new mongoose.mongo.GridFSBucket(db, { bucketName: 'recordings' });
 
     const uploadStream = bucket.openUploadStream(filename, { metadata });
-
     uploadStream.end(buffer);
 
     uploadStream.on('finish', () => {
@@ -21,18 +20,13 @@ function uploadToGridFS(buffer, filename, metadata = {}) {
     });
 
     uploadStream.on('error', (err) => reject(err));
-
-    
-
   });
 }
 
-
+// Protected endpoint: requires `middleware/auth.js` to set req.user
 exports.uploadRecording = async (req, res) => {
   try {
-    console.log('📤 Upload request received');
-    console.log('📤 Body:', req.body);
-    console.log('📤 File:', req.file ? req.file.originalname : 'NO FILE');
+    const uploader = req.user; // { id, phoneNumber, code }
 
     const {
       employee_code,
@@ -42,18 +36,17 @@ exports.uploadRecording = async (req, res) => {
       timestamp,
     } = req.body;
 
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No file uploaded' });
-    }
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
 
-    if (!employee_id || !employee_code) {
-      return res.status(400).json({ success: false, message: 'Employee ID and code are required' });
+    if (!employee_id || !employee_code) return res.status(400).json({ success: false, message: 'Employee ID and code are required' });
+
+    // Only allow employee to upload for themselves
+    if (uploader.role !== 'admin' && String(uploader.id) !== String(employee_id)) {
+      return res.status(403).json({ success: false, message: 'Forbidden: cannot upload for another employee' });
     }
 
     const employee = await Employee.findById(employee_id);
-    if (!employee) {
-      return res.status(404).json({ success: false, message: 'Employee not found' });
-    }
+    if (!employee) return res.status(404).json({ success: false, message: 'Employee not found' });
 
     // upload to GridFS
     const filename = `${Date.now()}${path.extname(req.file.originalname) || '.mp3'}`;
@@ -66,16 +59,13 @@ exports.uploadRecording = async (req, res) => {
 
     const file = await uploadToGridFS(req.file.buffer, filename, metadata);
 
-    // build public URL to stream file back (see server route below)
     const fileUrl = `${req.protocol}://${req.get('host')}/files/${file._id}`;
 
-    // create DB recording document
     const recording = await Recording.create({
       employee_id,
       employee_code,
-      file_name: file.filename,
-      file_path: null,
       file_id: file._id,
+      file_name: file.filename,
       file_size: file.length,
       file_url: fileUrl,
       phone_number: phone_number || 'unknown',
@@ -83,22 +73,7 @@ exports.uploadRecording = async (req, res) => {
       call_timestamp: timestamp ? new Date(Number(timestamp)) : new Date(),
     });
 
-    // update employee last_sync
-    await Employee.findByIdAndUpdate(employee_id, { last_sync: new Date() });
-
-    res.json({
-      success: true,
-      message: 'Recording uploaded successfully',
-      recording: {
-        id: recording._id,
-        file_name: recording.file_name,
-        file_size: recording.file_size,
-        phone_number: recording.phone_number,
-        call_duration: recording.call_duration,
-        file_url: recording.file_url,
-      },
-    });
-
+    res.status(201).json({ success: true, message: 'Recording uploaded', recording });
   } catch (err) {
     console.error('uploadRecording error:', err);
     res.status(500).json({ success: false, message: 'Server error: ' + err.message });
