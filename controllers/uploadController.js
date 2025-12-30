@@ -7,12 +7,26 @@ function uploadToGridFS(buffer, filename, metadata = {}) {
   return new Promise((resolve, reject) => {
     const db = mongoose.connection.db;
     const bucket = new mongoose.mongo.GridFSBucket(db, { bucketName: 'recordings' });
+
     const uploadStream = bucket.openUploadStream(filename, { metadata });
+
     uploadStream.end(buffer);
-    uploadStream.on('finish', (file) => resolve(file));
+
+    uploadStream.on('finish', () => {
+      resolve({
+        _id: uploadStream.id,
+        filename: uploadStream.filename,
+        length: uploadStream.length || buffer.length,
+      });
+    });
+
     uploadStream.on('error', (err) => reject(err));
+
+    
+
   });
 }
+
 
 exports.uploadRecording = async (req, res) => {
   try {
