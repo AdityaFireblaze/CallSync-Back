@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const generateEmployeeCode = require('../utils/generateCode');
 const Employee = require('../models/Employee');
+const sendEmail = require("../utils/sendEmail");
+
 // const sendNotification = require('../utils/notify');
 
 // POST /api/auth/login
@@ -14,44 +16,89 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: "email and password required" });
+      return res.status(400).json({
+        success: false,
+        message: "email and password required",
+      });
     }
 
-    const employee = await Employee.findOne({ email: email.toLowerCase() });
+    const employee = await Employee.findOne({
+      email: email.toLowerCase(),
+    });
+
     if (!employee) {
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+      });
     }
 
     const ok = await bcrypt.compare(password, employee.password);
     if (!ok) {
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+      });
     }
 
     if (!employee.activated) {
-      return res.status(403).json({ success: false, message: "Employee not activated" });
+      return res.status(403).json({
+        success: false,
+        message: "Employee not activated",
+      });
     }
 
+    // ✅ CREATE JWT
     const token = jwt.sign(
       { id: employee._id, role: "employee" },
       process.env.JWT_SECRET,
       { expiresIn: "30d" }
     );
 
+    // ✅ SEND EMPLOYEE CODE VIA EMAIL (NON-BLOCKING)
+    try {
+      await sendEmail({
+        to: employee.email,
+        subject: "Your CallSync Employee Code",
+        text: `
+Hello ${employee.name},
+
+You have successfully logged in to CallSync.
+
+Your Employee Code:
+${employee.code}
+
+Use this code to activate your device in the CallSync app.
+
+Regards,
+CallSync Team
+        `,
+      });
+    } catch (mailErr) {
+      console.error("Email send failed:", mailErr.message);
+      // ❗ DO NOT FAIL LOGIN IF EMAIL FAILS
+    }
+
+    // ✅ RESPONSE
     res.json({
       success: true,
       token,
       employee: {
         id: employee._id,
         name: employee.name,
-        code: employee.code
-      }
+        code: employee.code,
+      },
     });
 
   } catch (err) {
     console.error("login error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
+
 
 
 // POST /api/auth/register
