@@ -25,6 +25,8 @@ app.use('/api', authRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api/admin', adminRoutes);
 
+
+
 // Stream file by id at root path: GET /files/:id (protected)
 const auth = require('./middleware/auth');
 const mongoose = require('mongoose');
