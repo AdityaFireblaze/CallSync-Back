@@ -17,6 +17,15 @@ const employeeSchema = new mongoose.Schema({
     unique: true        // one phone → one employee
   },
 
+  // allow login via email/password
+  email: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+
+  password: String,
+
   code: {
     type: String,
     required: true,
