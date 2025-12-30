@@ -17,25 +17,12 @@ const employeeSchema = new mongoose.Schema({
     unique: true        // one phone → one employee
   },
 
-  // allow login via email/password
-  email: {
-    type: String,
-    unique: true,
-    sparse: true,
-  },
-
-  password: String,
-
   code: {
     type: String,
     required: true,
     unique: true,
     immutable: true     // permanent pairing code
   },
-
-  // optional temporary code fields (not required for permanent admin codes)
-  tempCode: String,
-  tempCodeExpires: Date,
 
   activated: {
     type: Boolean,

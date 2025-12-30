@@ -1,56 +1,44 @@
 const Employee = require("../models/Employee");
-const generateEmployeeCode = require("../utils/generateCode");
+const generateCode = require("../utils/generateCode");
 
-// Admin: Create a new employee with a permanent, immutable code
+// CREATE EMPLOYEE
 exports.createEmployee = async (req, res) => {
-  try {
-    const { name, department, phoneNumber } = req.body;
+  const { name, department } = req.body;
 
-    if (!name || !department || !phoneNumber) {
-      return res.status(400).json({ message: "All fields required" });
-    }
+  if (!name) return res.status(400).json({ message: "Name required" });
 
-    const existing = await Employee.findOne({ phoneNumber });
-    if (existing) {
-      return res.status(400).json({ message: "Employee already exists" });
-    }
+  let code;
+  do {
+    code = generateCode();
+  } while (await Employee.exists({ code }));
 
-    // Ensure generated code is unique
-    let code;
-    do {
-      code = generateEmployeeCode("CS");
-    } while (await Employee.exists({ code }));
+  const employee = await Employee.create({
+    name,
+    department,
+    code,
+    activated: false
+  });
 
-    const employee = await Employee.create({
-      name,
-      department,
-      phoneNumber,
-      code,
-    });
-
-    // Return the created employee including the permanent code (admin only)
-    res.status(201).json({ success: true, employee });
-  } catch (err) {
-    console.error("createEmployee error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
+  res.json({ success: true, employee });
 };
 
-// Admin: Activate an employee (sets activated flag and timestamp)
+// ACTIVATE EMPLOYEE
 exports.activateEmployee = async (req, res) => {
-  try {
-    const { id } = req.params;
+  const employee = await Employee.findByIdAndUpdate(
+    req.params.id,
+    { activated: true },
+    { new: true }
+  );
 
-    const employee = await Employee.findById(id);
-    if (!employee) return res.status(404).json({ message: "Employee not found" });
-
-    employee.activated = true;
-    employee.activatedAt = new Date();
-    await employee.save();
-
-    res.json({ success: true, message: "Employee activated", employee });
-  } catch (err) {
-    console.error("activateEmployee error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+  if (!employee) {
+    return res.status(404).json({ message: "Employee not found" });
   }
+
+  res.json({ success: true, employee });
+};
+
+// LIST EMPLOYEES
+exports.listEmployees = async (_, res) => {
+  const employees = await Employee.find().sort({ createdAt: -1 });
+  res.json({ success: true, employees });
 };
