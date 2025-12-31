@@ -47,6 +47,19 @@ const employeeSchema = new mongoose.Schema(
     // =========================
     // ADMIN / WEBSITE ONLY
     // =========================
+
+
+    documentsUploaded: {
+      type: Boolean,
+      default: false
+    },
+
+    documents: {
+      idProofFileId: mongoose.Schema.Types.ObjectId,
+      photoFileId: mongoose.Schema.Types.ObjectId
+    },  
+
+    
     firstName: {
       type: String,
       trim: true,

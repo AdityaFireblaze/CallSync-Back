@@ -1,0 +1,28 @@
+1️⃣ Admin creates employee
+   - name
+   - department
+   - code generated (CSXXXX)
+   - activated = false
+
+2️⃣ Admin uploads employee documents (NEW)
+   - ID proof (PDF/JPG)
+   - Photo
+   - Optional: Offer letter, NDA
+   - status = "documents_pending" → "documents_uploaded"
+
+3️⃣ Admin reviews & activates employee
+   - activated = true
+   - (email sent with code)
+
+4️⃣ Employee registers (mobile)
+   - email + password + phone + code
+
+5️⃣ Employee logs in
+   - JWT issued
+   - code mailed again (optional)
+
+6️⃣ Employee activates device
+   - code verified
+   - device linked
+
+7️⃣ Recordings upload

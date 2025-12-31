@@ -1,16 +1,22 @@
-const adminKeyFromEnv = process.env.ADMIN_KEY || '';
+const jwt = require("jsonwebtoken");
 
-// Simple admin protection: check `x-admin-key` header or Bearer <ADMIN_KEY>
 module.exports = (req, res, next) => {
-  const header = req.headers['x-admin-key'] || req.headers.authorization;
-  if (!header) return res.status(401).json({ message: 'Admin key required' });
+  try {
+    const header = req.headers.authorization;
+    if (!header) {
+      return res.status(401).json({ message: "No token provided" });
+    }
 
-  let key = header;
-  if (header.startsWith('Bearer ')) key = header.split(' ')[1];
+    const token = header.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-  if (!key || key !== adminKeyFromEnv) return res.status(403).json({ message: 'Invalid admin key' });
+    if (decoded.role !== "admin") {
+      return res.status(403).json({ message: "Admin access only" });
+    }
 
-  // attach a lightweight admin identity
-  req.user = { role: 'admin' };
-  next();
+    req.admin = decoded; // { id, companyId, role }
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid token" });
+  }
 };
