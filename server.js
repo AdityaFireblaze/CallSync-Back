@@ -8,6 +8,10 @@ const authRoutes = require('./routes/authRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const fileRoutes = require("./routes/fileRoutes");
+const adminEmployeeRoutes = require("./routes/adminEmployeeRoutes");
+
+
+
 
 
 const app = express();
@@ -27,6 +31,7 @@ app.use('/api', authRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api/admin', adminRoutes);
 app.use(fileRoutes);
+app.use("/api/admin", adminEmployeeRoutes);
 
 
 
