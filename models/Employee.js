@@ -2,45 +2,79 @@ const mongoose = require("mongoose");
 
 const employeeSchema = new mongoose.Schema(
   {
+    // =========================
+    // CORE (DO NOT TOUCH)
+    // =========================
     name: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
 
     department: {
       type: String,
-      trim: true
+      trim: true,
     },
 
     code: {
       type: String,
       required: true,
-      unique: true
+      unique: true,
     },
 
     activated: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
-    // Filled ONLY after user registration
     email: {
       type: String,
       lowercase: true,
-      sparse: true
+      sparse: true,
     },
 
     password: {
-      type: String
+      type: String,
     },
 
     phoneNumber: {
-      type: String
+      type: String,
     },
 
     tempCode: String,
-    tempCodeExpires: Date
+    tempCodeExpires: Date,
+
+    // =========================
+    // ADMIN / WEBSITE ONLY
+    // =========================
+    firstName: {
+      type: String,
+      trim: true,
+    },
+
+    lastName: {
+      type: String,
+      trim: true,
+    },
+
+    designation: {
+      type: String,
+      trim: true,
+    },
+
+    employeeInternalId: {
+      type: String,
+      trim: true,
+    },
+
+    joiningDate: {
+      type: Date,
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false, // soft delete (important later)
+    },
   },
   { timestamps: true }
 );
