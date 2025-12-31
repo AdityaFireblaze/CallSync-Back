@@ -7,6 +7,8 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const fileRoutes = require("./routes/fileRoutes");
+
 
 const app = express();
 
@@ -24,6 +26,8 @@ app.get('/', (_, res) => res.json({ status: 'CallSync Backend Running' }));
 app.use('/api', authRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api/admin', adminRoutes);
+app.use(fileRoutes);
+
 
 
 
