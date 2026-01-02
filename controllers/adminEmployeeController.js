@@ -1,8 +1,86 @@
 const Employee = require("../models/Employee");
 const generateEmployeeCode = require("../utils/generateCode");
 
+// exports.createEmployee = async (req, res) => {
+//   try {
+//     const {
+//       firstName,
+//       lastName,
+//       phoneNumber,
+//       department,
+//       designation,
+//       employeeInternalId,
+//       joiningDate,
+//     } = req.body;
+
+//     // ✅ basic validation
+//     if (!firstName || !phoneNumber || !department) {
+//       return res.status(400).json({
+//         message: "firstName, phoneNumber and department are required",
+//       });
+//     }
+
+//     // ❌ prevent duplicate phone
+//     const existing = await Employee.findOne({ phoneNumber });
+//     if (existing) {
+//       return res.status(400).json({
+//         message: "Employee already exists with this phone number",
+//       });
+//     }
+
+//     // ✅ generate permanent employee code
+//     const employeeCode = generateEmployeeCode();
+
+//     const employee = await Employee.create({
+//   name: `${firstName} ${lastName || ""}`.trim(),
+
+//   firstName,
+//   lastName,
+
+//   phoneNumber,
+//   department,
+//   designation,
+//   employeeInternalId,
+//   joiningDate,
+
+//   code: employeeCode,
+
+//   activated: false,                 // mobile activation later
+//   registrationCompleted: false,     // ⬅️ IMPORTANT (admin review pending)
+
+//   documentsUploaded: false,         // ⬅️ explicit
+//   email: null,
+//   password: null,
+// });
+
+
+//     return res.status(201).json({
+//       success: true,
+//       message: "Employee created successfully",
+//       employee: {
+//         id: employee._id,
+//         name: employee.name,
+//         phoneNumber: employee.phoneNumber,
+//         department: employee.department,
+//         code: employee.code,
+//         activated: employee.activated,
+//       },
+//     });
+
+//   } catch (err) {
+//     console.error("createEmployee error:", err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
+
+
+
 exports.createEmployee = async (req, res) => {
   try {
+    // 🔍 DEBUG
+    console.log("REQ BODY:", req.body);
+
     const {
       firstName,
       lastName,
@@ -11,16 +89,14 @@ exports.createEmployee = async (req, res) => {
       designation,
       employeeInternalId,
       joiningDate,
-    } = req.body;
+    } = req.body || {};
 
-    // ✅ basic validation
     if (!firstName || !phoneNumber || !department) {
       return res.status(400).json({
         message: "firstName, phoneNumber and department are required",
       });
     }
 
-    // ❌ prevent duplicate phone
     const existing = await Employee.findOne({ phoneNumber });
     if (existing) {
       return res.status(400).json({
@@ -28,31 +104,35 @@ exports.createEmployee = async (req, res) => {
       });
     }
 
-    // ✅ generate permanent employee code
-    const employeeCode = generateEmployeeCode();
+    // 🔁 safer code generation
+    let employeeCode;
+    let exists = true;
+
+    while (exists) {
+      employeeCode = generateEmployeeCode();
+      exists = await Employee.exists({ code: employeeCode });
+    }
 
     const employee = await Employee.create({
-  name: `${firstName} ${lastName || ""}`.trim(),
+      name: `${firstName} ${lastName || ""}`.trim(),
 
-  firstName,
-  lastName,
+      firstName,
+      lastName,
+      phoneNumber,
+      department,
+      designation,
+      employeeInternalId,
+      joiningDate: joiningDate ? new Date(joiningDate) : null,
 
-  phoneNumber,
-  department,
-  designation,
-  employeeInternalId,
-  joiningDate,
+      code: employeeCode,
 
-  code: employeeCode,
+      activated: false,
+      registrationCompleted: false,
+      documentsUploaded: false,
 
-  activated: false,                 // mobile activation later
-  registrationCompleted: false,     // ⬅️ IMPORTANT (admin review pending)
-
-  documentsUploaded: false,         // ⬅️ explicit
-  email: null,
-  password: null,
-});
-
+      email: null,
+      password: null,
+    });
 
     return res.status(201).json({
       success: true,
@@ -64,14 +144,16 @@ exports.createEmployee = async (req, res) => {
         department: employee.department,
         code: employee.code,
         activated: employee.activated,
+        registrationCompleted: employee.registrationCompleted,
       },
     });
 
   } catch (err) {
-    console.error("createEmployee error:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error("❌ createEmployee error:", err);
+    res.status(500).json({ message: err.message || "Server error" });
   }
 };
+
 
 
 
