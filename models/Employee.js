@@ -34,15 +34,15 @@ const employeeSchema = new mongoose.Schema(
     },
 
 
-    email: {
-      type: String,
-      lowercase: true,
-      sparse: true,
-    },
+    // email: {
+    //   type: String,
+    //   lowercase: true,
+    //   sparse: true,
+    // },
 
-    password: {
-      type: String,
-    },
+    // password: {
+    //   type: String,
+    // },
 
     phoneNumber: {
       type: String,
