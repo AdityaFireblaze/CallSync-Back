@@ -1,19 +1,24 @@
 const express = require("express");
-const { createEmployee } = require("../controllers/adminEmployeeController");
+const {
+  createEmployee,
+  completeEmployeeRegistration
+} = require("../controllers/adminEmployeeController");
+const adminAuth = require("../middleware/adminAuth");
 
 const router = express.Router();
 
-// simple admin-key protection
+// 🔐 Create employee (Admin only)
 router.post(
   "/employees",
-  (req, res, next) => {
-    const key = req.headers["x-admin-key"];
-    if (!key || key !== process.env.ADMIN_KEY) {
-      return res.status(401).json({ message: "Admin key required" });
-    }
-    next();
-  },
+  adminAuth,
   createEmployee
+);
+
+// 🔐 Complete registration (Admin only)
+router.patch(
+  "/employees/:id/complete-registration",
+  adminAuth,
+  completeEmployeeRegistration
 );
 
 module.exports = router;

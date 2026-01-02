@@ -32,17 +32,27 @@ exports.createEmployee = async (req, res) => {
     const employeeCode = generateEmployeeCode();
 
     const employee = await Employee.create({
-      name: `${firstName} ${lastName || ""}`.trim(),
-      phoneNumber,
-      department,
-      designation,
-      employeeInternalId,
-      joiningDate,
-      code: employeeCode,
-      activated: false, // 🔴 IMPORTANT
-      email: null,
-      password: null,
-    });
+  name: `${firstName} ${lastName || ""}`.trim(),
+
+  firstName,
+  lastName,
+
+  phoneNumber,
+  department,
+  designation,
+  employeeInternalId,
+  joiningDate,
+
+  code: employeeCode,
+
+  activated: false,                 // mobile activation later
+  registrationCompleted: false,     // ⬅️ IMPORTANT (admin review pending)
+
+  documentsUploaded: false,         // ⬅️ explicit
+  email: null,
+  password: null,
+});
+
 
     return res.status(201).json({
       success: true,
@@ -62,3 +72,57 @@ exports.createEmployee = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+
+exports.completeEmployeeRegistration = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1️⃣ Find employee
+    const employee = await Employee.findById(id);
+    if (!employee || employee.isDeleted) {
+      return res.status(404).json({
+        message: "Employee not found"
+      });
+    }
+
+    // 2️⃣ Ensure documents uploaded
+    if (!employee.documentsUploaded) {
+      return res.status(400).json({
+        message: "Employee documents not uploaded"
+      });
+    }
+
+    // 3️⃣ Prevent double registration
+    if (employee.registrationCompleted) {
+      return res.status(400).json({
+        message: "Employee already registered"
+      });
+    }
+
+    // 4️⃣ FINAL APPROVAL
+    employee.registrationCompleted = true;
+    employee.activated = true;
+
+    await employee.save();
+
+    // 5️⃣ Response
+    res.json({
+      success: true,
+      message: "Employee registration completed",
+      employee: {
+        id: employee._id,
+        name: employee.name,
+        code: employee.code,
+        activated: employee.activated,
+        registrationCompleted: employee.registrationCompleted
+      }
+    });
+
+  } catch (err) {
+    console.error("completeEmployeeRegistration error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+

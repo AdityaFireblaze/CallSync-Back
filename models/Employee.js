@@ -27,6 +27,13 @@ const employeeSchema = new mongoose.Schema(
       default: false,
     },
 
+
+    registrationCompleted: {
+    type: Boolean,
+    default: false
+    },
+
+
     email: {
       type: String,
       lowercase: true,
@@ -59,7 +66,7 @@ const employeeSchema = new mongoose.Schema(
       photoFileId: mongoose.Schema.Types.ObjectId
     },  
 
-    
+
     firstName: {
       type: String,
       trim: true,
