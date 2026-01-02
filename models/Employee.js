@@ -38,7 +38,6 @@ const employeeSchema = new mongoose.Schema(
   type: String,
   lowercase: true,
   sparse: true,
-  default: null
 },
 
 password: {
