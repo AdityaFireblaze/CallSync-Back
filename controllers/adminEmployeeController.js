@@ -208,3 +208,24 @@ exports.completeEmployeeRegistration = async (req, res) => {
   }
 };
 
+
+
+// controllers/adminEmployeeController.js
+
+exports.getAllEmployees = async (req, res) => {
+  try {
+    const employees = await Employee.find({ isDeleted: false })
+      .sort({ createdAt: -1 })
+      .select(
+        "name email phoneNumber activated registrationCompleted documentsUploaded createdAt"
+      );
+
+    res.json({
+      success: true,
+      employees,
+    });
+  } catch (err) {
+    console.error("getAllEmployees error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

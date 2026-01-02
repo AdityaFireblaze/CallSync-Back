@@ -1,11 +1,19 @@
 const express = require("express");
 const {
   createEmployee,
-  completeEmployeeRegistration
+  completeEmployeeRegistration,
+  getAllEmployees,
 } = require("../controllers/adminEmployeeController");
 const adminAuth = require("../middleware/adminAuth");
 
 const router = express.Router();
+
+// 🔐 Get all employees (Admin only)
+router.get(
+  "/allEmployees",
+  adminAuth,
+  getAllEmployees
+);
 
 // 🔐 Create employee (Admin only)
 router.post(
