@@ -150,52 +150,68 @@ exports.register = async (req, res) => {
   try {
     const { email, password, phoneNumber, employeeCode } = req.body;
 
+    // 1️⃣ Validate input
     if (!email || !password || !phoneNumber || !employeeCode) {
       return res.status(400).json({
         success: false,
-        message: "email, password, phoneNumber and employeeCode are required"
+        message: "email, password, phoneNumber and employeeCode are required",
       });
     }
 
+    // 2️⃣ Find employee by code
     const employee = await Employee.findOne({
-      code: employeeCode.trim().toUpperCase()
+      code: employeeCode.trim().toUpperCase(),
+      isDeleted: false,
     });
 
     if (!employee) {
-      return res.status(404).json({ success: false, message: "Invalid employee code" });
+      return res.status(404).json({
+        success: false,
+        message: "Invalid employee code",
+      });
     }
 
-    // ✅ ADMIN must finish registration first
+    // 3️⃣ Admin approval required
     if (!employee.registrationCompleted) {
       return res.status(403).json({
         success: false,
-        message: "Employee registration not completed by admin"
+        message: "Employee registration not completed by admin",
       });
     }
 
-    // ✅ Prevent double registration
-    if (employee.activated) {
+    // 4️⃣ Prevent double registration
+    if (employee.email && employee.password) {
       return res.status(400).json({
         success: false,
-        message: "Employee already registered"
+        message: "Employee already registered",
       });
     }
 
+    // 5️⃣ Create employee account
     employee.email = email.toLowerCase();
     employee.password = await bcrypt.hash(password, 10);
     employee.phoneNumber = phoneNumber;
 
-    employee.activated = true; // 🔥 THIS IS THE KEY FIX
+    // ❌ DO NOT TOUCH:
+    // employee.registrationCompleted
+    // employee.activated
 
     await employee.save();
 
-    res.json({ success: true, message: "Registration successful" });
+    return res.json({
+      success: true,
+      message: "Registration successful. Please login.",
+    });
 
   } catch (err) {
     console.error("register error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
+
 
 
 

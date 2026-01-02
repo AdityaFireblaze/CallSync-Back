@@ -185,7 +185,7 @@ exports.completeEmployeeRegistration = async (req, res) => {
 
     // 4️⃣ FINAL APPROVAL
     employee.registrationCompleted = true;
-    employee.activated = true;
+    // employee.activated = true;
 
     await employee.save();
 
