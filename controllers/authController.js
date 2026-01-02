@@ -15,6 +15,7 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // 1️⃣ Validate input
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -22,17 +23,19 @@ exports.login = async (req, res) => {
       });
     }
 
+    // 2️⃣ Find employee
     const employee = await Employee.findOne({
       email: email.toLowerCase(),
     });
 
-    if (!employee) {
+    if (!employee || !employee.password) {
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
       });
     }
 
+    // 3️⃣ Check password
     const ok = await bcrypt.compare(password, employee.password);
     if (!ok) {
       return res.status(401).json({
@@ -41,21 +44,24 @@ exports.login = async (req, res) => {
       });
     }
 
-    if (!employee.activated) {
+    // 4️⃣ ADMIN APPROVAL CHECK (✅ IMPORTANT)
+    if (!employee.registrationCompleted) {
       return res.status(403).json({
         success: false,
-        message: "Employee not activated",
+        message: "Employee registration not approved by admin",
       });
     }
 
-    // ✅ CREATE JWT
+    // ❌ DO NOT CHECK employee.activated HERE
+
+    // 5️⃣ CREATE JWT
     const token = jwt.sign(
       { id: employee._id, role: "employee" },
       process.env.JWT_SECRET,
       { expiresIn: "30d" }
     );
 
-    // ✅ SEND EMPLOYEE CODE VIA EMAIL (NON-BLOCKING)
+    // 6️⃣ SEND EMPLOYEE CODE (optional but fine)
     try {
       await sendEmail({
         to: employee.email,
@@ -76,10 +82,10 @@ CallSync Team
       });
     } catch (mailErr) {
       console.error("Email send failed:", mailErr.message);
-      // ❗ DO NOT FAIL LOGIN IF EMAIL FAILS
+      // login must NOT fail if email fails
     }
 
-    // ✅ RESPONSE
+    // 7️⃣ RESPONSE
     res.json({
       success: true,
       token,
@@ -87,6 +93,7 @@ CallSync Team
         id: employee._id,
         name: employee.name,
         code: employee.code,
+        activated: employee.activated, // helpful for UI
       },
     });
 
@@ -98,6 +105,7 @@ CallSync Team
     });
   }
 };
+
 
 
 
@@ -218,22 +226,48 @@ exports.register = async (req, res) => {
 exports.validateCode = async (req, res) => {
   try {
     const { code } = req.body;
-    if (!code) return res.status(400).json({ success: false, message: "code required" });
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: "code required",
+      });
+    }
 
     const employee = await Employee.findOne({
-      _id: req.user?.id,
-      code: code.trim().toUpperCase()
+      _id: req.user.id,
+      code: code.trim().toUpperCase(),
     });
 
     if (!employee) {
-      return res.status(401).json({ success: false, message: "Invalid employee code" });
+      return res.status(401).json({
+        success: false,
+        message: "Invalid employee code",
+      });
     }
 
-    res.json({ success: true, employee });
+    // ✅ ACTIVATE DEVICE HERE
+    if (!employee.activated) {
+      employee.activated = true;
+      await employee.save();
+    }
+
+    res.json({
+      success: true,
+      message: "Device activated successfully",
+      employee: {
+        id: employee._id,
+        name: employee.name,
+        code: employee.code,
+        activated: employee.activated,
+      },
+    });
 
   } catch (err) {
     console.error("validateCode error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
 
