@@ -64,6 +64,8 @@ exports.createUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
+    console.log(req.body);
+
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Name, email & password required" });
     }
