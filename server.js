@@ -11,6 +11,7 @@ const fileRoutes = require("./routes/fileRoutes");
 const adminEmployeeRoutes = require("./routes/adminEmployeeRoutes");
 const adminDocumentRoutes = require("./routes/adminDocumentRoutes");
 const adminAuthRoutes = require("./routes/adminAuthRoutes");
+const adminUserRoutes = require("./routes/adminUserRoutes");
 
 
 
@@ -36,6 +37,7 @@ app.use(fileRoutes);
 app.use("/api/admin", adminEmployeeRoutes);
 app.use("/api", adminDocumentRoutes);
 app.use("/api/admin/auth", adminAuthRoutes);
+app.use("/api/admin", adminUserRoutes);
 
 
 
