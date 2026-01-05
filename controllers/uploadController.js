@@ -38,7 +38,7 @@ exports.uploadRecording = async (req, res) => {
 
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
 
-    if (!employee_id || !employee_code) return res.status(400).json({ success: false, message: 'Employee ID and code are required' });
+    // if (!employee_id || !employee_code) return res.status(400).json({ success: false, message: 'Employee ID and code are required' });
 
     // Only allow employee to upload for themselves
     if (uploader.role !== 'admin' && String(uploader.id) !== String(employee_id)) {
